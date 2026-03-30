@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --glass: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.2);
+            --text: #ffffff;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', sans-serif;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Карточка профиля */
+        .profile-card {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            max-width: 350px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .profile-card img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #0088cc;
+        }
+
+        /* Сетка карточек с файлами */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .card:hover { transform: translateY(-5px); }
+
+        .card img {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* Админ-кнопка (скрыта по дефолту) */
+        #admin-panel {
+            display: none;
+            background: rgba(0, 255, 128, 0.1);
+            border: 1px dashed #00ff80;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        button {
+            background: #0088cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="profile-card">
+        <img id="user-photo" src="https://via.placeholder.com/50" alt="">
+        <div>
+            <div id="user-name" style="font-weight: bold;">Загрузка...</div>
+            <div style="font-size: 0.8em; opacity: 0.7;">User Profile</div>
+        </div>
+    </div>
+
+    <div id="admin-panel">
+        <h4 style="margin-top:0">Админ-панель</h4>
+        <input type="file" id="fileInput" style="display:none">
+        <button onclick="document.getElementById('fileInput').click()">Загрузить проект</button>
+    </div>
+
+    <div class="grid" id="content-grid">
+        <div class="card">
+            <img src="https://via.placeholder.com/150" alt="Preview">
+            <span>Layer Bot.lua</span>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Развернуть на весь экран
+
+        // Получаем данные из ТГ
+        const user = tg.initDataUnsafe?.user;
+        if (user) {
+            document.getElementById('user-name').innerText = user.first_name;
+            if (user.photo_url) {
+                document.getElementById('user-photo').src = user.photo_url;
+            }
+        }
+
+        // ПРОВЕРКА НА АДМИНА (Замени ID на свой)
+        const ADMIN_ID = 123456789; // ТВОЙ ID ТЕЛЕГРАМ
+        if (user && user.id === ADMIN_ID) {
+            document.getElementById('admin-panel').style.display = 'block';
+        }
+
+        // Логика загрузки (пример для понимания)
+        document.getElementById('fileInput').onchange = function() {
+            alert("Файл выбран! Тут должна быть отправка на сервер.");
+        };
+    </script>
+</body>
+</html>
