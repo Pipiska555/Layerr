@@ -5,140 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --glass: rgba(255, 255, 255, 0.1);
-            --border: rgba(255, 255, 255, 0.2);
-            --text: #ffffff;
-        }
-
         body {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            margin: 0;
-            padding: 20px;
-            font-family: 'Segoe UI', sans-serif;
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            background: linear-gradient(135deg, #121212, #1a1a2e);
+            color: white; font-family: sans-serif; margin: 0; padding: 20px;
         }
-
-        /* Карточка профиля */
-        .profile-card {
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 15px 25px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            width: 100%;
-            max-width: 350px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-
-        .profile-card img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: 2px solid #0088cc;
-        }
-
-        /* Сетка карточек с файлами */
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            width: 100%;
-        }
-
-        .card {
-            background: var(--glass);
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
-            border: 1px solid var(--border);
-            border-radius: 15px;
-            padding: 15px;
-            text-align: center;
-            transition: transform 0.3s;
-        }
-
-        .card:hover { transform: translateY(-5px); }
-
-        .card img {
-            width: 100%;
-            border-radius: 10px;
-            margin-bottom: 10px;
-        }
-
-        /* Админ-кнопка (скрыта по дефолту) */
-        #admin-panel {
-            display: none;
-            background: rgba(0, 255, 128, 0.1);
-            border: 1px dashed #00ff80;
-            padding: 15px;
-            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px; padding: 20px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
             margin-bottom: 20px;
-            width: 100%;
         }
-
+        .profile { display: flex; align-items: center; gap: 15px; }
+        .profile img { width: 50px; height: 50px; border-radius: 50%; background: #333; }
+        .admin-panel { display: none; border: 1px dashed #0088cc; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px; padding: 15px; text-align: center;
+        }
         button {
-            background: #0088cc;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 100%;
+            background: #0088cc; color: white; border: none; 
+            padding: 12px; border-radius: 10px; width: 100%; cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-    <div class="profile-card">
-        <img id="user-photo" src="https://via.placeholder.com/50" alt="">
+    <div class="glass profile">
+        <img id="avatar" src="">
         <div>
-            <div id="user-name" style="font-weight: bold;">Загрузка...</div>
-            <div style="font-size: 0.8em; opacity: 0.7;">User Profile</div>
+            <b id="name">Загрузка...</b>
+            <div style="font-size: 12px; opacity: 0.6;">Telegram Web App</div>
         </div>
     </div>
 
-    <div id="admin-panel">
-        <h4 style="margin-top:0">Админ-панель</h4>
-        <input type="file" id="fileInput" style="display:none">
-        <button onclick="document.getElementById('fileInput').click()">Загрузить проект</button>
+    <div id="admin-ui" class="glass admin-panel">
+        <input type="file" id="fileInp" style="display:none">
+        <button onclick="document.getElementById('fileInp').click()">ВЫБРАТЬ И ЗАГРУЗИТЬ</button>
     </div>
 
-    <div class="grid" id="content-grid">
-        <div class="card">
-            <img src="https://via.placeholder.com/150" alt="Preview">
-            <span>Layer Bot.lua</span>
+    <div class="grid" id="grid">
         </div>
-    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Развернуть на весь экран
+        tg.expand();
 
-        // Получаем данные из ТГ
-        const user = tg.initDataUnsafe?.user;
+        const MY_ID = ТВОЙ_ТГ_ID; // <--- ЗАМЕНИ НА СВОЙ ID (цифрами)
+        const user = tg.initDataUnsafe.user;
+
         if (user) {
-            document.getElementById('user-name').innerText = user.first_name;
-            if (user.photo_url) {
-                document.getElementById('user-photo').src = user.photo_url;
-            }
+            document.getElementById('name').innerText = user.first_name;
+            if (user.photo_url) document.getElementById('avatar').src = user.photo_url;
+            if (user.id === MY_ID) document.getElementById('admin-ui').style.display = 'block';
         }
 
-        // ПРОВЕРКА НА АДМИНА (Замени ID на свой)
-        const ADMIN_ID = 123456789; // ТВОЙ ID ТЕЛЕГРАМ
-        if (user && user.id === ADMIN_ID) {
-            document.getElementById('admin-panel').style.display = 'block';
+        async function refresh() {
+            const r = await fetch('/api/files');
+            const files = await r.json();
+            const g = document.getElementById('grid');
+            g.innerHTML = files.map(f => `
+                <div class="card">
+                    <div style="font-size: 40px;">📄</div>
+                    <div style="font-size: 12px; margin-top: 5px;">${f.name}</div>
+                </div>
+            `).join('');
         }
 
-        // Логика загрузки (пример для понимания)
-        document.getElementById('fileInput').onchange = function() {
-            alert("Файл выбран! Тут должна быть отправка на сервер.");
+        document.getElementById('fileInp').onchange = async (e) => {
+            const f = e.target.files[0];
+            if (!f) return;
+            const fd = new FormData();
+            fd.append('file', f);
+            await fetch('/upload', { method: 'POST', body: fd });
+            refresh();
+            tg.showAlert("Файл успешно загружен, братан!");
         };
+
+        refresh();
     </script>
 </body>
 </html>
